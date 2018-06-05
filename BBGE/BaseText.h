@@ -1,5 +1,5 @@
-#ifndef BASETEXT_H
-#define BASETEXT_H
+#ifndef BBGE_BASETEXT_H
+#define BBGE_BASETEXT_H
 
 #include "RenderObject.h"
 
@@ -20,4 +20,4 @@ public:
 	virtual float getActualWidth() = 0; // width of text after wrapping
 };
 
-#endif
+#endif /* BBGE_BASETEXT_H */

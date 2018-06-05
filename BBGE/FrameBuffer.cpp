@@ -137,7 +137,6 @@ bool FrameBuffer::init(int width, int height, bool fitToScreen, GLint filter)
 	}
 	else
 	{
-#if defined(BBGE_BUILD_SDL)
 		if (!glIsRenderbufferEXT)
 		{
 			glIsRenderbufferEXT = (PFNGLISRENDERBUFFEREXTPROC)SDL_GL_GetProcAddress("glIsRenderbufferEXT");
@@ -158,7 +157,6 @@ bool FrameBuffer::init(int width, int height, bool fitToScreen, GLint filter)
 			glGetFramebufferAttachmentParameterivEXT = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVEXTPROC)SDL_GL_GetProcAddress("glGetFramebufferAttachmentParameterivEXT");
 			glGenerateMipmapEXT = (PFNGLGENERATEMIPMAPEXTPROC)SDL_GL_GetProcAddress("glGenerateMipmapEXT");
 		}
-#endif
 
 		if( !glIsRenderbufferEXT || !glBindRenderbufferEXT || !glDeleteRenderbuffersEXT ||
 			!glGenRenderbuffersEXT || !glRenderbufferStorageEXT || !glGetRenderbufferParameterivEXT ||
@@ -280,7 +278,6 @@ void FrameBuffer::unloadDevice()
 	debugLog("done");
 }
 
-#if defined(BBGE_BUILD_SDL)
 void FrameBuffer::resetOpenGL()
 {
 #if defined(BBGE_BUILD_FRAMEBUFFER)
@@ -305,7 +302,6 @@ void FrameBuffer::resetOpenGL()
 	glGenerateMipmapEXT = NULL;
 #endif
 }
-#endif
 
 void FrameBuffer::reloadDevice()
 {

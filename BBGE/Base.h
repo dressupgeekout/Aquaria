@@ -89,11 +89,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	#endif
 #endif
 
-#ifdef BBGE_BUILD_SDL
-
-	#include "SDL.h"
-
-#endif
+#include "SDL.h"
 
 #if defined(BBGE_BUILD_OPENGL)
 	#define GL_GLEXT_LEGACY 1

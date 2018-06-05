@@ -89,13 +89,9 @@ Joystick::Joystick()
 {
 	xinited = false;
 	stickIndex = -1;
-#ifdef BBGE_BUILD_SDL
-#  ifdef BBGE_BUILD_SDL2
 	sdl_controller = NULL;
 	sdl_haptic = NULL;
-#  endif
 	sdl_joy = NULL;
-#endif
 #if defined(__LINUX__) && !defined(BBGE_BUILD_SDL2)
 	eventfd = -1;
 	effectid = -1;
@@ -128,7 +124,6 @@ void Joystick::init(int stick)
 	std::ostringstream os;
 #endif
 
-#ifdef BBGE_BUILD_SDL
 	stickIndex = stick;
 	const int numJoy = SDL_NumJoysticks();
 	os << "Found [" << numJoy << "] joysticks";
@@ -136,7 +131,6 @@ void Joystick::init(int stick)
 
 	if (numJoy > stick)
 	{
-		#ifdef BBGE_BUILD_SDL2
 		if (SDL_IsGameController(stick))
 		{
 			sdl_controller = SDL_GameControllerOpen(stick);
@@ -157,7 +151,6 @@ void Joystick::init(int stick)
 				sdl_haptic = NULL;
 			}
 		}
-		#endif
 
 		if (!sdl_joy)
 			sdl_joy = SDL_JoystickOpen(stick);
@@ -165,13 +158,9 @@ void Joystick::init(int stick)
 		if (sdl_joy)
 		{
 			inited = true;
-			#ifdef BBGE_BUILD_SDL2
 			debugLog(std::string("Initialized Joystick [") + std::string(SDL_JoystickName(sdl_joy)) + std::string("]"));
 			if (sdl_controller) debugLog(std::string("Joystick is a Game Controller"));
 			if (sdl_haptic) debugLog(std::string("Joystick has force feedback support"));
-			#else
-			debugLog(std::string("Initialized Joystick [") + std::string(SDL_JoystickName(stick)) + std::string("]"));
-			#endif
 		}
 		else
 		{
@@ -184,7 +173,6 @@ void Joystick::init(int stick)
 	{
 		debugLog("Not enough Joystick(s) found");
 	}
-#endif
 	
 #if defined(__LINUX__) && !defined(BBGE_BUILD_SDL2)
 	os.seekp(0);
@@ -232,10 +220,6 @@ void Joystick::init(int stick)
 		debugLog("XInput not found, not installed?");
 
 	debugLog("after catch");
-
-#if !defined(BBGE_BUILD_SDL)
-	inited = xinited;
-#endif
 #endif
 }
 
@@ -250,8 +234,6 @@ void Joystick::shutdown()
 		eventfd = -1;
 	}
 #endif
-#ifdef BBGE_BUILD_SDL
-#ifdef BBGE_BUILD_SDL2
 	if (sdl_haptic)
 	{
 		SDL_HapticClose(sdl_haptic);
@@ -263,13 +245,11 @@ void Joystick::shutdown()
 		sdl_controller = 0;
 		sdl_joy = 0; // SDL_GameControllerClose() frees this
 	}
-#endif
 	if (sdl_joy)
 	{
 		SDL_JoystickClose(sdl_joy);
 		sdl_joy = 0;
 	}
-#endif
 }
 
 void Joystick::rumble(float leftMotor, float rightMotor, float time)

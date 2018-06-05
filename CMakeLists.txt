@@ -42,8 +42,6 @@ SET(EXTLIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/ExternalLibs)
 
 SET(FTGLDIR ${EXTLIBDIR}/FTGL)
 SET(FTGLSRCDIR ${FTGLDIR}/src)
-SET(FREETYPE2DIR ${EXTLIBDIR}/freetype2)
-SET(FREETYPE2SRCDIR ${FREETYPE2DIR}/src)
 SET(LUADIR ${EXTLIBDIR}/lua-5.1.4)
 SET(LUASRCDIR ${LUADIR}/src)
 SET(LIBOGGDIR ${EXTLIBDIR}/libogg-1.3.0)
@@ -78,14 +76,7 @@ FILE(STRINGS "${PNG_PNG_INCLUDE_DIR}/png.h" PNG_H REGEX "^#define PNG_LIBPNG_VER
 STRING(REGEX REPLACE "^.*PNG_LIBPNG_VER[^0-9]*([0-9]+).*$" "\\1" PNG_LIBPNG_VER "${PNG_H}")
 
 ### FreeType
-
-OPTION(AQUARIA_INTERNAL_FREETYPE "Always use included FreeType library" TRUE)
-if(NOT AQUARIA_INTERNAL_FREETYPE)
-    find_package(Freetype)
-endif(NOT AQUARIA_INTERNAL_FREETYPE)
-if(NOT FREETYPE_FOUND)
-    set(FREETYPE_INCLUDE_DIRS ${FREETYPE2DIR}/include)
-endif(NOT FREETYPE_FOUND)
+find_package(Freetype)
 
 ### Lua
 
@@ -222,7 +213,6 @@ INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${SRCDIR})
 INCLUDE_DIRECTORIES(${FTGL_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${OGGVORBIS_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${SDL_INCLUDE_DIR})
@@ -592,50 +582,6 @@ SET(OGGVORBIS_SRCS
     ${LIBVORBISDIR}/lib/synthesis.c
     ${LIBVORBISDIR}/lib/vorbisfile.c
     ${LIBVORBISDIR}/lib/window.c
-)
-
-SET(FREETYPE2_SRCS
-    ${FREETYPE2SRCDIR}/base/ftsystem.c
-    ${FREETYPE2SRCDIR}/base/ftdebug.c
-    ${FREETYPE2SRCDIR}/base/ftinit.c
-    ${FREETYPE2SRCDIR}/base/ftbase.c
-    ${FREETYPE2SRCDIR}/base/ftbbox.c
-    ${FREETYPE2SRCDIR}/base/ftbdf.c
-    ${FREETYPE2SRCDIR}/base/ftbitmap.c
-    ${FREETYPE2SRCDIR}/base/ftcid.c
-    ${FREETYPE2SRCDIR}/base/ftfstype.c
-    ${FREETYPE2SRCDIR}/base/ftgasp.c
-    ${FREETYPE2SRCDIR}/base/ftglyph.c
-    ${FREETYPE2SRCDIR}/base/ftgxval.c
-    ${FREETYPE2SRCDIR}/base/ftlcdfil.c
-    ${FREETYPE2SRCDIR}/base/ftmm.c
-    ${FREETYPE2SRCDIR}/base/ftotval.c
-    ${FREETYPE2SRCDIR}/base/ftpatent.c
-    ${FREETYPE2SRCDIR}/base/ftpfr.c
-    ${FREETYPE2SRCDIR}/base/ftstroke.c
-    ${FREETYPE2SRCDIR}/base/ftsynth.c
-    ${FREETYPE2SRCDIR}/base/fttype1.c
-    ${FREETYPE2SRCDIR}/base/ftwinfnt.c
-    ${FREETYPE2SRCDIR}/base/ftxf86.c
-    ${FREETYPE2SRCDIR}/truetype/truetype.c
-    ${FREETYPE2SRCDIR}/type1/type1.c
-    ${FREETYPE2SRCDIR}/cff/cff.c
-    ${FREETYPE2SRCDIR}/cid/type1cid.c
-    ${FREETYPE2SRCDIR}/pfr/pfr.c
-    ${FREETYPE2SRCDIR}/type42/type42.c
-    ${FREETYPE2SRCDIR}/winfonts/winfnt.c
-    ${FREETYPE2SRCDIR}/pcf/pcf.c
-    ${FREETYPE2SRCDIR}/bdf/bdf.c
-    ${FREETYPE2SRCDIR}/sfnt/sfnt.c
-    ${FREETYPE2SRCDIR}/autofit/autofit.c
-    ${FREETYPE2SRCDIR}/pshinter/pshinter.c
-    ${FREETYPE2SRCDIR}/raster/raster.c
-    ${FREETYPE2SRCDIR}/smooth/smooth.c
-    ${FREETYPE2SRCDIR}/cache/ftcache.c
-    ${FREETYPE2SRCDIR}/gzip/ftgzip.c
-    ${FREETYPE2SRCDIR}/lzw/ftlzw.c
-    ${FREETYPE2SRCDIR}/psaux/psaux.c
-    ${FREETYPE2SRCDIR}/psnames/psmodule.c
 )
 
 IF(MSVC)

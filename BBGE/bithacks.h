@@ -1,5 +1,5 @@
-#ifndef BITHACKS_H
-#define BITHACKS_H
+#ifndef BBGE_BITHACKS_H
+#define BBGE_BITHACKS_H
 
 #ifdef _MSC_VER
 #  include <intrin.h>
@@ -74,11 +74,6 @@ inline unsigned int clz(uint32 x)
 #endif
 }
 
-
-
-
-
-
 }; // end namespace bithacks
 
-#endif
+#endif /* BBGE_BITHACKS_H */

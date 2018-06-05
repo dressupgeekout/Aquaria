@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
+
 #ifndef BBGE_BASE_H
 #define BBGE_BASE_H
 
@@ -300,4 +301,4 @@ namespace ttvfs { class Root; }
 extern ttvfs::Root vfs; // in Base.cpp
 #endif
 
-#endif
+#endif /* BBGE_BASE_H */

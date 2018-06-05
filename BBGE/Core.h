@@ -800,13 +800,9 @@ public:
 	Vector rightStick;
 	bool inited, xinited;
 	bool anyButton();
-#ifdef BBGE_BUILD_SDL
-#  ifdef BBGE_BUILD_SDL2
 	SDL_GameController *sdl_controller;
 	SDL_Haptic *sdl_haptic;
-#  endif
 	SDL_Joystick *sdl_joy;
-#endif
 #if defined(__LINUX__) && !defined(BBGE_BUILD_SDL2)
 	int eventfd;
 	int16_t effectid;

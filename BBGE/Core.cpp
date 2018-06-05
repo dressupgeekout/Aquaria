@@ -44,18 +44,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <direct.h>
 #endif
 
-#ifdef BBGE_BUILD_SDL
-	#include "SDL_syswm.h"
-	#ifdef BBGE_BUILD_SDL2
-	static SDL_Window *gScreen=0;
-	static SDL_GLContext gGLctx=0;
-	#else
-	static SDL_Surface *gScreen=0;
-	#endif
+#include "SDL_syswm.h"
+static SDL_Window *gScreen=0;
+static SDL_GLContext gGLctx=0;
 
-	bool ignoreNextMouse=false;
-	Vector unchange;
-#endif
+bool ignoreNextMouse=false;
+Vector unchange;
 
 #ifdef BBGE_BUILD_VFS
 #include "ttvfs.h"
@@ -218,11 +212,6 @@ void Core::updateCursorFromJoystick(float dt, int spd)
 
 void Core::setWindowCaption(const std::string &caption, const std::string &icon)
 {
-#ifdef BBGE_BUILD_SDL
-#ifndef BBGE_BUILD_SDL2
-	SDL_WM_SetCaption(caption.c_str(), icon.c_str());
-#endif
-#endif
 }
 
 RenderObjectLayer *Core::getRenderObjectLayer(int i)
@@ -987,9 +976,7 @@ Core::Core(const std::string &filesystem, const std::string& extraDataDir, int n
 	*/
 
 	particleManager = new ParticleManager(particleSize);
-#ifdef BBGE_BUILD_SDL
 	nowTicks = thenTicks = 0;
-#endif
 	_hasFocus = false;
 	lib_graphics = lib_sound = lib_input = false;
 	clearColor = Vector(0,0,0);
@@ -1236,13 +1223,7 @@ void Core::setInputGrab(bool on)
 {
 	if (isWindowFocus())
 	{
-#ifdef BBGE_BUILD_SDL
-		#ifdef BBGE_BUILD_SDL2
 		SDL_SetWindowGrab(gScreen, on ? SDL_TRUE : SDL_FALSE);
-		#else
-		SDL_WM_GrabInput(on?SDL_GRAB_ON:SDL_GRAB_OFF);
-		#endif
-#endif
 	}
 }
 
@@ -1278,19 +1259,12 @@ void Core::init()
 	if (!glfwInit())
 		exit(0);
 #endif
-#ifdef BBGE_BUILD_SDL
-#ifndef BBGE_BUILD_SDL2
-	// Disable relative mouse motion at the edges of the screen, which breaks
-	// mouse control for absolute input devices like Wacom tablets and touchscreens.
-	SDL_putenv((char *) "SDL_MOUSE_RELATIVE=0");
-#endif
 
 	if((SDL_Init(0))==-1)
 	{
 		exit_error("Failed to init SDL");
 	}
 	
-#endif
 	/*
 #ifdef BBGE_BUILD_DIRECTX
 	if (!glfwInit())
@@ -1337,7 +1311,6 @@ Vector Core::getGamePosition(const Vector &v)
 
 bool Core::getMouseButtonState(int m)
 {
-#ifdef BBGE_BUILD_SDL
 	int mcode=m;
 
 	switch(m)
@@ -1350,8 +1323,6 @@ bool Core::getMouseButtonState(int m)
 	Uint8 mousestate = SDL_GetMouseState(0,0);
 
 	return mousestate & SDL_BUTTON(mcode);
-#endif
-	return false;
 }
 
 bool Core::getKeyState(int k)
@@ -1360,13 +1331,11 @@ bool Core::getKeyState(int k)
 	return glfwGetKey(k)==GLFW_PRESS;
 #endif
 
-#ifdef BBGE_BUILD_SDL
 	if (k >= KEY_MAXARRAY || k < 0)
 	{
 		return 0;
 	}
 	return keys[k];
-#endif
 
 #ifdef BBGE_BUILD_WINDOWS
 	if (k >= KEY_MAXARRAY || k < 0)
@@ -1560,13 +1529,7 @@ void readKeyData()
 bool Core::initJoystickLibrary(int numSticks)
 {
 	//joystickEnabled = false;
-#ifdef BBGE_BUILD_SDL
-#ifdef BBGE_BUILD_SDL2
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER);
-#else
-	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-#endif
-#endif
 
 	if (numSticks > 0)
 		joystick.init(0);
@@ -1854,14 +1817,7 @@ void Core::setSDLGLAttributes()
 	std::ostringstream os;
 	os << "setting vsync: " << _vsync;
 	debugLog(os.str());
-
-#ifdef BBGE_BUILD_SDL
-#ifndef BBGE_BUILD_SDL2
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, _vsync);
-#endif
-
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#endif
 }
 
 
@@ -1971,7 +1927,6 @@ bool Core::initGraphicsLibrary(int width, int height, bool fullscreen, int vsync
 
 	//if (!didOnce)
 	{
-#ifdef BBGE_BUILD_SDL2
 		Uint32 flags = 0;
 		flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 		if (fullscreen)
@@ -1994,21 +1949,6 @@ bool Core::initGraphicsLibrary(int width, int height, bool fullscreen, int vsync
 			SDL_Quit();
 			exit(0);
 		}
-#else
-		Uint32 flags = 0;
-		flags = SDL_OPENGL;
-		if (fullscreen)
-			flags |= SDL_FULLSCREEN;
-
-		gScreen = SDL_SetVideoMode(width, height, bpp, flags);
-		if (gScreen == NULL)
-		{
-			std::ostringstream os;
-			os << "Couldn't set resolution [" << width << "x" << height << "]\n" << SDL_GetError();
-			SDL_Quit();
-			exit_error(os.str());
-		}
-#endif
 
 #if BBGE_BUILD_OPENGL_DYNAMIC
 		if (!lookup_all_glsyms())
@@ -2023,7 +1963,6 @@ bool Core::initGraphicsLibrary(int width, int height, bool fullscreen, int vsync
 
 	setWindowCaption(appName, appName);
 
-#ifdef BBGE_BUILD_SDL2
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	SDL_GL_SwapWindow(gScreen);
@@ -2033,11 +1972,6 @@ bool Core::initGraphicsLibrary(int width, int height, bool fullscreen, int vsync
 		SDL_GL_SetSwapInterval(_vsync);
 	const char *name = SDL_GetCurrentVideoDriver();
 	SDL_SetWindowGrab(gScreen, SDL_TRUE);
-#else
-	SDL_WM_GrabInput(grabInputOnReentry==0 ? SDL_GRAB_OFF : SDL_GRAB_ON);
-	char name[256];
-	SDL_VideoDriverName((char*)name, 256);
-#endif
 
 	glViewport(0, 0, width, height);
 	glScissor(0, 0, width, height);
@@ -2125,8 +2059,6 @@ void Core::enumerateScreenModes()
 {
 	screenModes.clear();
 
-#ifdef BBGE_BUILD_SDL
-#ifdef BBGE_BUILD_SDL2
 	SDL_DisplayMode mode;
 	const int modecount = SDL_GetNumDisplayModes(0);
 	if(modecount == 0){
@@ -2141,36 +2073,6 @@ void Core::enumerateScreenModes()
 			screenModes.push_back(ScreenMode(i, mode.w, mode.h, mode.refresh_rate));
 		}
 	}
-
-#else
-	SDL_Rect **modes;
-	int i;
-
-	modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
-
-	if(modes == (SDL_Rect **)0){
-		debugLog("No modes available!");
-		return;
-	}
-
-	if(modes == (SDL_Rect **)-1){
-		debugLog("All resolutions available.");
-	}
-	else{
-		int c=0;
-		for(i=0;modes[i];++i){
-			c++;
-		}
-		for (i=c-1;i>=0;i--)
-		{
-			if (modes[i]->w > modes[i]->h)
-			{
-				screenModes.push_back(ScreenMode(i, modes[i]->w, modes[i]->h, 0));
-			}
-		}
-	}
-#endif
-#endif
 }
 
 void Core::shutdownSoundLibrary()
@@ -2179,20 +2081,14 @@ void Core::shutdownSoundLibrary()
 
 void Core::shutdownGraphicsLibrary(bool killVideo)
 {
-#ifdef BBGE_BUILD_SDL
 	glFinish();
 	if (killVideo) {
-		#ifdef BBGE_BUILD_SDL2
 		SDL_SetWindowGrab(gScreen, SDL_FALSE);
 		SDL_GL_MakeCurrent(gScreen, NULL);
 		SDL_GL_DeleteContext(gGLctx);
 		SDL_DestroyWindow(gScreen);
 		gGLctx = 0;
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-		#else
-		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-		SDL_WM_GrabInput(SDL_GRAB_OFF);
-		#endif
 
 		FrameBuffer::resetOpenGL();
 
@@ -2207,7 +2103,6 @@ void Core::shutdownGraphicsLibrary(bool killVideo)
 		#undef GL_FUNC
 #endif
 	}
-#endif
 
 	_hasFocus = false;
 
@@ -2711,9 +2606,7 @@ void Core::resetTimer()
 #ifdef BBGE_BUILD_GLFW
 	glfwSetTime(0);
 #endif
-#ifdef BBGE_BUILD_SDL
 	nowTicks = thenTicks = SDL_GetTicks();
-#endif
 #ifdef BBGE_BUILD_DIRECTX
 	QueryPerformanceCounter((LARGE_INTEGER*)&timerEnd);
 	timerStart = timerEnd;
@@ -2737,21 +2630,15 @@ void Core::setMousePosition(const Vector &p)
 #if !defined(BBGE_BUILD_WINDOWS) && defined(BBGE_BUILD_GLFW)
 	glfwSetMousePos(p.x,p.y);
 #endif
-#ifdef BBGE_BUILD_SDL
 	float px = p.x + virtualOffX;
 	float py = p.y;// + virtualOffY;
 
-	#ifdef BBGE_BUILD_SDL2
 	SDL_WarpMouseInWindow(gScreen, px * (float(width)/float(virtualWidth)), py * (float(height)/float(virtualHeight)));
-	#else
-	SDL_WarpMouse( px * (float(width)/float(virtualWidth)), py * (float(height)/float(virtualHeight)));
-	#endif
 
 	/*
 	ignoreNextMouse = true;
 	unchange = core->mouse.position - lp;
 	*/
-#endif
 
 	/*
 	std::ostringstream os;
@@ -2807,10 +2694,7 @@ std::string getScreenshotFilename()
 
 uint32 Core::getTicks()
 {
-#ifdef BBGE_BUILD_SDL
 	return SDL_GetTicks();
-#endif
-	return 0;
 }
 
 float Core::stopWatch(int d)
@@ -2830,21 +2714,12 @@ float Core::stopWatch(int d)
 
 bool Core::isWindowFocus()
 {
-#ifdef BBGE_BUILD_SDL
-	#ifdef BBGE_BUILD_SDL2
 	return ((SDL_GetWindowFlags(gScreen) & SDL_WINDOW_INPUT_FOCUS) != 0);
-	#else
-	return ((SDL_GetAppState() & SDL_APPINPUTFOCUS) != 0);
-	#endif
-#endif
-	return true;
 }
 
 void Core::onBackgroundUpdate()
 {
-#if BBGE_BUILD_SDL
 	SDL_Delay(200);
-#endif
 }
 
 void Core::main(float runTime)
@@ -2888,9 +2763,7 @@ void Core::main(float runTime)
 	*/
 #endif
 
-#ifdef BBGE_BUILD_SDL
 	nowTicks = thenTicks = SDL_GetTicks();
-#endif
 
 	//int i;
 
@@ -2936,7 +2809,6 @@ void Core::main(float runTime)
 		//ticks = newTicks;
 #endif
 
-#ifdef BBGE_BUILD_SDL
 		if (timeUpdateType == TIMEUPDATE_DYNAMIC)
 		{
 			nowTicks = SDL_GetTicks();
@@ -2953,7 +2825,6 @@ void Core::main(float runTime)
 		dt = (nowTicks-thenTicks)/1000.0;
 		thenTicks = nowTicks;
 		//thenTicks = SDL_GetTicks();
-#endif
 
 		if (verbose) debugLog("avgFPS");
 		if (!avgFPS.empty())
@@ -3186,7 +3057,6 @@ void Core::main(float runTime)
 			fpsDebugString = os.str();
 			*/
 
-#ifdef BBGE_BUILD_SDL
 			nowTicks = SDL_GetTicks();
 			
 			if (diff > 0)
@@ -3200,8 +3070,6 @@ void Core::main(float runTime)
 			}
 
 			//nowTicks = SDL_GetTicks();
-#endif
-
 		}	
 	}
 	if (verbose) debugLog("bottom of function");
@@ -3356,13 +3224,7 @@ bool Core::doMouseConstraint()
 	return false;
 }
 
-#if defined(BBGE_BUILD_SDL)
-
-#if defined(BBGE_BUILD_SDL2)
 typedef std::map<SDL_Keycode,int> sdlKeyMap;
-#else
-typedef std::map<SDLKey,int> sdlKeyMap;
-#endif
 
 static sdlKeyMap *initSDLKeymap(void)
 {
@@ -3371,7 +3233,6 @@ static sdlKeyMap *initSDLKeymap(void)
 
 	#define SETKEYMAP(gamekey,sdlkey) retval[sdlkey] = gamekey
 
-#ifdef BBGE_BUILD_SDL2
 	SETKEYMAP(KEY_LSUPER, SDLK_LGUI);
 	SETKEYMAP(KEY_RSUPER, SDLK_RGUI);
 	SETKEYMAP(KEY_LMETA, SDLK_LGUI);
@@ -3387,23 +3248,6 @@ static sdlKeyMap *initSDLKeymap(void)
 	SETKEYMAP(KEY_NUMPAD8, SDLK_KP_8);
 	SETKEYMAP(KEY_NUMPAD9, SDLK_KP_9);
 	SETKEYMAP(KEY_NUMPAD0, SDLK_KP_0);
-#else
-	SETKEYMAP(KEY_LSUPER, SDLK_LSUPER);
-	SETKEYMAP(KEY_RSUPER, SDLK_RSUPER);
-	SETKEYMAP(KEY_LMETA, SDLK_LMETA);
-	SETKEYMAP(KEY_RMETA, SDLK_RMETA);
-	SETKEYMAP(KEY_PRINTSCREEN, SDLK_PRINT);
-	SETKEYMAP(KEY_NUMPAD1, SDLK_KP1);
-	SETKEYMAP(KEY_NUMPAD2, SDLK_KP2);
-	SETKEYMAP(KEY_NUMPAD3, SDLK_KP3);
-	SETKEYMAP(KEY_NUMPAD4, SDLK_KP4);
-	SETKEYMAP(KEY_NUMPAD5, SDLK_KP5);
-	SETKEYMAP(KEY_NUMPAD6, SDLK_KP6);
-	SETKEYMAP(KEY_NUMPAD7, SDLK_KP7);
-	SETKEYMAP(KEY_NUMPAD8, SDLK_KP8);
-	SETKEYMAP(KEY_NUMPAD9, SDLK_KP9);
-	SETKEYMAP(KEY_NUMPAD0, SDLK_KP0);
-#endif
 
 	SETKEYMAP(KEY_BACKSPACE, SDLK_BACKSPACE);
 
@@ -3509,11 +3353,7 @@ static sdlKeyMap *initSDLKeymap(void)
 	return _retval;
 }
 
-#if defined(BBGE_BUILD_SDL2)
 static int mapSDLKeyToGameKey(const SDL_Keycode val)
-#else
-static int mapSDLKeyToGameKey(const SDLKey val)
-#endif
 {
 	static sdlKeyMap *keymap = NULL;
 	if (keymap == NULL)
@@ -3521,7 +3361,6 @@ static int mapSDLKeyToGameKey(const SDLKey val)
 
 	return (*keymap)[val];
 }
-#endif
 
 
 void Core::pollEvents()
@@ -3577,11 +3416,7 @@ void Core::pollEvents()
 			case SDL_KEYDOWN:
 			{
 				#if __APPLE__
-					#if SDL_VERSION_ATLEAST(2, 0, 0)
 						if ((event.key.keysym.sym == SDLK_q) && (event.key.keysym.mod & KMOD_GUI))
-					#else
-						if ((event.key.keysym.sym == SDLK_q) && (event.key.keysym.mod & KMOD_META))
-					#endif
 				#else
 				if ((event.key.keysym.sym == SDLK_F4) && (event.key.keysym.mod & KMOD_ALT))
 				#endif
@@ -3628,7 +3463,6 @@ void Core::pollEvents()
 			}
 			break;
 
-			#ifdef BBGE_BUILD_SDL2
 			case SDL_WINDOWEVENT:
 			{
 				if (event.window.event == SDL_WINDOWEVENT_CLOSE)
@@ -3652,41 +3486,6 @@ void Core::pollEvents()
 				}
 			}
 			break;
-			#else
-			case SDL_MOUSEBUTTONDOWN:
-			{
-				if (_hasFocus && updateMouse)
-				{
-					switch(event.button.button)
-					{
-					case 4:
-						mouse.scrollWheelChange = 1;
-					break;
-					case 5:
-						mouse.scrollWheelChange = -1;
-					break;
-					}
-				}
-			}
-			break;
-
-			case SDL_MOUSEBUTTONUP:
-			{
-				if (_hasFocus && updateMouse)
-				{
-					switch(event.button.button)
-					{
-					case 4:
-						mouse.scrollWheelChange = 1;
-					break;
-					case 5:
-						mouse.scrollWheelChange = -1;
-					break;
-					}
-				}
-			}
-			break;
-			#endif
 
 			case SDL_QUIT:
 				SDL_Quit();
@@ -4265,9 +4064,7 @@ void Core::shutdownJoystickLibrary()
 {
 	if (joystickEnabled) {
 		joystick.shutdown();
-#ifdef BBGE_BUIDL_SDL
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
-#endif
 		joystickEnabled = false;
 	}
 }
@@ -4372,22 +4169,18 @@ void Core::shutdown()
 #endif
 
 
-#ifdef BBGE_BUILD_SDL
 	debugLog("SDL Quit...");
 		SDL_Quit();
 	debugLog("OK");
-#endif
 }
 
 //util funcs
 
 void Core::instantQuit()
 {
-#ifdef BBGE_BUILD_SDL
     SDL_Event event;
     event.type = SDL_QUIT;
     SDL_PushEvent(&event);
-#endif
 }
 
 bool Core::exists(const std::string &filename)

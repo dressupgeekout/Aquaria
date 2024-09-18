@@ -230,6 +230,10 @@ INCLUDE_DIRECTORIES(${OPENAL_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${TINYXML2_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${EXTLIBDIR})
 
+# XXX should actually fork out to sdl2-config(1)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
+  include_directories("/usr/X11R7/include")
+endif()
 
 
 # Custom build ID: e.g. "-custom", " (my very own build)"
